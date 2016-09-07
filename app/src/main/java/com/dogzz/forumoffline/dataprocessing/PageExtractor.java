@@ -5,6 +5,7 @@
 
 package com.dogzz.forumoffline.dataprocessing;
 
+import android.util.Log;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -14,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PageExtractor {
+    private static final String LOG_TAG = PageExtractor.class.getName();
+
     public static String extractArticle(String result, boolean showVideo, int videoWidth) {
         String resultHtml;
         Document doc = Jsoup.parse(result);
@@ -70,26 +73,28 @@ public class PageExtractor {
         Elements headingThreads = doc.select("td[class*=col_f_content]");
         for (Element heading : headingSections) {
             try {
-                String url = heading.select("h4 > a").get(0).absUrl("href");
-                String text = heading.text();
+                String url = heading.select("h4 > a").first().absUrl("href");
+                String text = heading.select("h4 > a").first().text();
                 ViewItemType type = url.contains("topic/") ? ViewItemType.THREAD : ViewItemType.SECTION;
                 resultList.add(new ViewItem(text, url, type));
             } catch (Exception e) {
-
+                Log.e(LOG_TAG, e.getMessage());
             }
             }
         for (Element heading : headingThreads) {
             try {
-                String url = heading.select("h4 > a").get(0).absUrl("href");
-                String text = heading.text();
+                String url = heading.select("h4 > a").first().absUrl("href");
+                String text = heading.select("h4 > a").first().text();
                 ViewItemType type = url.contains("topic/") ? ViewItemType.THREAD : ViewItemType.SECTION;
-                String lastPage = heading.select("a:contains(→)").text();
-                lastPage  = lastPage.substring(0, lastPage.length() - 1);
+//                String lastPage = heading.select("a:contains(→)").text();
+                Element page = heading.select("ul[class=mini_pagination] li").last();
+                String lastPage = page != null ? page.text().trim() : "";
+                lastPage  = lastPage.isEmpty() ? "1" : lastPage.substring(0, lastPage.length() - 1);//work if arrow present, fix needed
                 ViewItem item = new ViewItem(text, url, type);
-                item.setLastPage(Integer.valueOf(lastPage));
+                item.setLastPage(lastPage.trim());
                 resultList.add(item);
             } catch (Exception e) {
-
+                Log.e(LOG_TAG, e.getMessage());
             }
         }
         return resultList;

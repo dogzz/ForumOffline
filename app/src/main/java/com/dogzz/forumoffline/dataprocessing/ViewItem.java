@@ -9,7 +9,7 @@ public class ViewItem {
     String text;
     String url;
     ViewItemType type;
-    int lastPage;
+    String lastPage;
 
     public ViewItem(String text, String url, ViewItemType type) {
         this.text = text;
@@ -29,11 +29,11 @@ public class ViewItem {
         return type;
     }
 
-    public int getLastPage() {
+    public String getLastPage() {
         return lastPage;
     }
 
-    public void setLastPage(int lastPage) {
+    public void setLastPage(String lastPage) {
         this.lastPage = lastPage;
     }
 }
