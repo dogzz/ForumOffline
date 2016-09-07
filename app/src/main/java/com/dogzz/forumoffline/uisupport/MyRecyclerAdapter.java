@@ -15,11 +15,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import com.dogzz.forumoffline.R;
 import com.dogzz.forumoffline.dataprocessing.ViewItem;
+import com.dogzz.forumoffline.dataprocessing.ViewItemType;
 
 import java.io.Serializable;
 import java.util.List;
 
 public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.CustomViewHolder> implements Serializable {
+
     private List<ViewItem> pageFolders;
     private Context mContext;
     private int selectedPosition = -1;
@@ -39,12 +41,20 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.Cu
     @Override
     public void onBindViewHolder(CustomViewHolder customViewHolder, int position) {
         String header = pageFolders.get(position).getText();
-        customViewHolder.articleImage.setVisibility(View.GONE);
+        if (pageFolders.get(position).getType() == ViewItemType.SECTION) {
+            customViewHolder.articleImage.setImageResource(R.drawable.f_icon);
+            customViewHolder.articleSubTitle.setVisibility(View.GONE);
+            customViewHolder.articleSubTitle.setText("");
+        } else {
+            customViewHolder.articleImage.setImageResource(R.drawable.t_unread);
+            customViewHolder.articleSubTitle.setVisibility(View.VISIBLE);
+            customViewHolder.articleSubTitle.setText(pageFolders.get(position).getLastPage());
+        }
+        customViewHolder.articleImage.setVisibility(View.VISIBLE);
         //Setting text view title
         customViewHolder.articleTitle.setText(header);
         customViewHolder.isSavedImage.setVisibility(View.GONE);
-        customViewHolder.articleSubTitle.setVisibility(View.GONE);
-        customViewHolder.articleSubTitle.setText("");
+
 
 
         if(selectedPosition == position){
@@ -71,6 +81,10 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.Cu
         notifyItemChanged(selectedPosition);
         selectedPosition = -1;
         notifyItemChanged(selectedPosition);
+    }
+
+    public void setPageFolders(List<ViewItem> pageFolders) {
+        this.pageFolders = pageFolders;
     }
 
     static class CustomViewHolder extends RecyclerView.ViewHolder {

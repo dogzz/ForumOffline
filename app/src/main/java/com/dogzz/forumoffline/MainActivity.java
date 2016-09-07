@@ -17,11 +17,8 @@ import com.dogzz.forumoffline.dataprocessing.TasksListener;
 import com.dogzz.forumoffline.dataprocessing.ViewItem;
 import com.dogzz.forumoffline.dataprocessing.ViewItemType;
 import com.dogzz.forumoffline.uisupport.MyRecyclerAdapter;
-import com.dogzz.forumoffline.network.PageDownloader;
 import com.dogzz.forumoffline.uisupport.RecyclerItemClickListener;
 
-import java.io.File;
-import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,10 +39,10 @@ public class MainActivity extends AppCompatActivity implements TasksListener {
         setSupportActionBar(toolbar);
         mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
         if (loader == null) {
-            loader = new ListsLoader(this);
+            loader = new ListsLoader(this, this);
         }
         if (adapter == null) {
-            adapter = new MyRecyclerAdapter(this, loader.getPageNames());
+            adapter = new MyRecyclerAdapter(this, loader.getCurrentList());
             mRecyclerView.setAdapter(adapter);
         }
         adapter.notifyDataSetChanged();
@@ -63,18 +60,27 @@ public class MainActivity extends AppCompatActivity implements TasksListener {
         mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(this, mRecyclerView, new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                ViewItem articleHeader = loader.getPageNames().get(position);
+                ViewItem articleHeader = loader.getCurrentList().get(position);
                 onArticleClicked(articleHeader);
             }
 
             @Override
             public void onLongItemClick(View view, int position) {
-                ViewItem articleHeader = loader.getPageNames().get(position);
+                ViewItem articleHeader = loader.getCurrentList().get(position);
                 onArticleLongClicked(articleHeader);
             }
         }));
 
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (loader.getBacklogSize() > 0) {
+            loader.popBacklog();
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override
@@ -111,15 +117,21 @@ public class MainActivity extends AppCompatActivity implements TasksListener {
 
     @Override
     public void onLoadingListFinished() {
-
+        if (adapter == null) {
+            adapter = new MyRecyclerAdapter(this, loader.getCurrentList());
+            mRecyclerView.setAdapter(adapter);
+        } else {
+            adapter.setPageFolders(loader.getCurrentList());
+        }
+        adapter.notifyDataSetChanged();
     }
 
     @Override
     public void onSavedArticleTaskFinished() {
 //        articlesHeaders.clear();
-//        articlesHeaders.addAll(loader.getPageNames());
+//        articlesHeaders.addAll(loader.getSavedViewItems());
         if (adapter == null) {
-            adapter = new MyRecyclerAdapter(this, loader.getPageNames());
+            adapter = new MyRecyclerAdapter(this, loader.getSavedViewItems());
             mRecyclerView.setAdapter(adapter);
         }
         adapter.notifyDataSetChanged();
@@ -128,10 +140,16 @@ public class MainActivity extends AppCompatActivity implements TasksListener {
 
 
     public void onArticleClicked(ViewItem header) {
-        Intent intent = new Intent(this, ViewActivity.class);
-        String fileName = header.getUrl();
-        intent.putExtra(EXTRA_MESSAGE, fileName);
-        startActivityForResult(intent, 1);
+        if (header.getType() == ViewItemType.SAVED) {
+            Intent intent = new Intent(this, ViewActivity.class);
+            String fileName = header.getUrl();
+            intent.putExtra(EXTRA_MESSAGE, fileName);
+            startActivityForResult(intent, 1);
+        } else if (header.getType() == ViewItemType.THREAD){
+            confirmStartDownload();
+        } else {
+            loader.renewViewItems(header);
+        }
     }
 
     public void onArticleLongClicked(ViewItem header) {

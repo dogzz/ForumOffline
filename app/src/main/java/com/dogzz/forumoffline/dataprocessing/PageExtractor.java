@@ -7,7 +7,11 @@ package com.dogzz.forumoffline.dataprocessing;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PageExtractor {
     public static String extractArticle(String result, boolean showVideo, int videoWidth) {
@@ -57,5 +61,37 @@ public class PageExtractor {
             e.printStackTrace();
         }
         return paddingRatio;
+    }
+
+    public static List<ViewItem> extractViewItemList(String result) {
+        List<ViewItem> resultList = new ArrayList<>();
+        Document doc = Jsoup.parse(result);
+        Elements headingSections = doc.select("td[class=col_c_forum]");
+        Elements headingThreads = doc.select("td[class*=col_f_content]");
+        for (Element heading : headingSections) {
+            try {
+                String url = heading.select("h4 > a").get(0).absUrl("href");
+                String text = heading.text();
+                ViewItemType type = url.contains("topic/") ? ViewItemType.THREAD : ViewItemType.SECTION;
+                resultList.add(new ViewItem(text, url, type));
+            } catch (Exception e) {
+
+            }
+            }
+        for (Element heading : headingThreads) {
+            try {
+                String url = heading.select("h4 > a").get(0).absUrl("href");
+                String text = heading.text();
+                ViewItemType type = url.contains("topic/") ? ViewItemType.THREAD : ViewItemType.SECTION;
+                String lastPage = heading.select("a:contains(→)").text();
+                lastPage  = lastPage.substring(0, lastPage.length() - 1);
+                ViewItem item = new ViewItem(text, url, type);
+                item.setLastPage(Integer.valueOf(lastPage));
+                resultList.add(item);
+            } catch (Exception e) {
+
+            }
+        }
+        return resultList;
     }
 }
