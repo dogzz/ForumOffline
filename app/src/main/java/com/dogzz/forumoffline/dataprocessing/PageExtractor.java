@@ -3,11 +3,10 @@
 * @Created: 9/1/2016
 */
 
-package com.dogzz.forumoffline.worker;
+package com.dogzz.forumoffline.dataprocessing;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class PageExtractor {

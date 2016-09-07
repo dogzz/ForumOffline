@@ -1,4 +1,4 @@
-package com.dogzz.forumoffline.worker;
+package com.dogzz.forumoffline.uisupport;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;

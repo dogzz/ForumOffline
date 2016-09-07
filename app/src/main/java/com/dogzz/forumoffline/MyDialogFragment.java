@@ -15,7 +15,7 @@ import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
-import com.dogzz.forumoffline.worker.PageDownloader;
+import com.dogzz.forumoffline.network.PageDownloader;
 
 public class MyDialogFragment extends DialogFragment {
     @Override

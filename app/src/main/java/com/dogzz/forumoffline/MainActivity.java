@@ -1,11 +1,9 @@
 package com.dogzz.forumoffline;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -14,19 +12,24 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import com.dogzz.forumoffline.worker.MyRecyclerAdapter;
-import com.dogzz.forumoffline.worker.PageDownloader;
-import com.dogzz.forumoffline.worker.RecyclerItemClickListener;
+import com.dogzz.forumoffline.dataprocessing.ListsLoader;
+import com.dogzz.forumoffline.dataprocessing.TasksListener;
+import com.dogzz.forumoffline.dataprocessing.ViewItem;
+import com.dogzz.forumoffline.dataprocessing.ViewItemType;
+import com.dogzz.forumoffline.uisupport.MyRecyclerAdapter;
+import com.dogzz.forumoffline.network.PageDownloader;
+import com.dogzz.forumoffline.uisupport.RecyclerItemClickListener;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements PageDownloader.DownloadListener {
+public class MainActivity extends AppCompatActivity implements TasksListener {
     RecyclerView mRecyclerView;
     MyRecyclerAdapter adapter;
-    protected List<String> articlesHeaders = new ArrayList<>();
+    ListsLoader loader;
+    protected List<ViewItem> articlesHeaders = new ArrayList<>();
     public final static String EXTRA_MESSAGE = "com.dogzz.forumoffline.FILENAME";
 
 
@@ -38,9 +41,11 @@ public class MainActivity extends AppCompatActivity implements PageDownloader.Do
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+        if (loader == null) {
+            loader = new ListsLoader(this);
+        }
         if (adapter == null) {
-            articlesHeaders.addAll(getPageNames());
-            adapter = new MyRecyclerAdapter(this, articlesHeaders);
+            adapter = new MyRecyclerAdapter(this, loader.getPageNames());
             mRecyclerView.setAdapter(adapter);
         }
         adapter.notifyDataSetChanged();
@@ -58,13 +63,13 @@ public class MainActivity extends AppCompatActivity implements PageDownloader.Do
         mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(this, mRecyclerView, new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                String articleHeader = articlesHeaders.get(position);
+                ViewItem articleHeader = loader.getPageNames().get(position);
                 onArticleClicked(articleHeader);
             }
 
             @Override
             public void onLongItemClick(View view, int position) {
-                String articleHeader = articlesHeaders.get(position);
+                ViewItem articleHeader = loader.getPageNames().get(position);
                 onArticleLongClicked(articleHeader);
             }
         }));
@@ -105,41 +110,31 @@ public class MainActivity extends AppCompatActivity implements PageDownloader.Do
 
 
     @Override
+    public void onLoadingListFinished() {
+
+    }
+
+    @Override
     public void onSavedArticleTaskFinished() {
-        articlesHeaders.clear();
-        articlesHeaders.addAll(getPageNames());
+//        articlesHeaders.clear();
+//        articlesHeaders.addAll(loader.getPageNames());
         if (adapter == null) {
-            adapter = new MyRecyclerAdapter(this, articlesHeaders);
+            adapter = new MyRecyclerAdapter(this, loader.getPageNames());
             mRecyclerView.setAdapter(adapter);
         }
         adapter.notifyDataSetChanged();
     }
 
-    private List<String> getPageNames() {
-        List<String> result = new ArrayList<>();
-//        String path = getFilesDir().getAbsolutePath().concat("/");
-        File dir = getFilesDir();
-        FileFilter ff = new FileFilter() {
-            @Override
-            public boolean accept(File file) {
-                return file.isDirectory();
-            }
-        };
-        File[] dirs = dir.listFiles(ff);
-        for (File d:dirs) {
-            result.add(d.getName());
-        }
-        return result;
-    }
 
-    public void onArticleClicked(String header) {
+
+    public void onArticleClicked(ViewItem header) {
         Intent intent = new Intent(this, ViewActivity.class);
-        String fileName = header;
+        String fileName = header.getUrl();
         intent.putExtra(EXTRA_MESSAGE, fileName);
         startActivityForResult(intent, 1);
     }
 
-    public void onArticleLongClicked(String header) {
+    public void onArticleLongClicked(ViewItem header) {
 
     }
 

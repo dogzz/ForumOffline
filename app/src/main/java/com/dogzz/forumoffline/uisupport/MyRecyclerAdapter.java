@@ -3,29 +3,28 @@
 * @Created: 9/1/2016
 */
 
-package com.dogzz.forumoffline.worker;
+package com.dogzz.forumoffline.uisupport;
 
 import android.content.Context;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.dogzz.forumoffline.R;
-import it.sephiroth.android.library.picasso.Picasso;
+import com.dogzz.forumoffline.dataprocessing.ViewItem;
 
 import java.io.Serializable;
 import java.util.List;
 
 public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.CustomViewHolder> implements Serializable {
-    private List<String> pageFolders;
+    private List<ViewItem> pageFolders;
     private Context mContext;
     private int selectedPosition = -1;
 
-    public MyRecyclerAdapter(Context context, List<String> pageFolders) {
+    public MyRecyclerAdapter(Context context, List<ViewItem> pageFolders) {
         this.pageFolders = pageFolders;
         this.mContext = context;
     }
@@ -39,7 +38,7 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.Cu
 
     @Override
     public void onBindViewHolder(CustomViewHolder customViewHolder, int position) {
-        String header = pageFolders.get(position);
+        String header = pageFolders.get(position).getText();
         customViewHolder.articleImage.setVisibility(View.GONE);
         //Setting text view title
         customViewHolder.articleTitle.setText(header);

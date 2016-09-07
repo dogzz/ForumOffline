@@ -1,4 +1,4 @@
-package com.dogzz.forumoffline.worker;
+package com.dogzz.forumoffline.network;
 
 import android.os.AsyncTask;
 import android.util.Log;

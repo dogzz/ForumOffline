@@ -3,13 +3,15 @@
 * @Created: 9/1/2016
 */
 
-package com.dogzz.forumoffline.worker;
+package com.dogzz.forumoffline.network;
 
 import android.app.Activity;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.util.Log;
 import android.widget.Toast;
+import com.dogzz.forumoffline.dataprocessing.PageExtractor;
+import com.dogzz.forumoffline.dataprocessing.TasksListener;
 import it.sephiroth.android.library.picasso.Picasso;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -24,7 +26,7 @@ public class PageDownloader {
     protected Activity mainActivity;
     private String downloadResult;
     private SQLiteDatabase db;
-    private DownloadListener mListener;
+    private TasksListener mListener;
     private boolean showVideo;
     private int videoWidth;
     private String url;
@@ -33,8 +35,8 @@ public class PageDownloader {
         this.mainActivity = mainActivity;
         this.showVideo = showVideo;
         this.videoWidth = videoWidth;
-        if (mainActivity instanceof DownloadListener) {
-            mListener = (DownloadListener) mainActivity;
+        if (mainActivity instanceof TasksListener) {
+            mListener = (TasksListener) mainActivity;
         }
     }
 
@@ -184,7 +186,4 @@ public class PageDownloader {
         }
     }
 
-    public interface DownloadListener {
-        void onSavedArticleTaskFinished();
-    }
 }

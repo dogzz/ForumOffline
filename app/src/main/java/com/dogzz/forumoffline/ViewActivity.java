@@ -10,7 +10,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
-import com.dogzz.forumoffline.worker.PageDownloader;
+import com.dogzz.forumoffline.network.PageDownloader;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
