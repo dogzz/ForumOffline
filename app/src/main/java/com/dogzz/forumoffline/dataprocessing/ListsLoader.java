@@ -6,39 +6,42 @@
 package com.dogzz.forumoffline.dataprocessing;
 
 import android.app.Activity;
-import android.content.Context;
-import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.widget.Toast;
 import com.dogzz.forumoffline.network.DownloadTask;
+import com.dogzz.forumoffline.network.PageDownloader;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class ListsLoader {
 
     private static final String BASE_FORUM_URL = "http://www.babyplan.ru/forums/";
-    Activity mContext;
-    TasksListener mListener;
-    String currentUrl = "";
+    private Activity mContext;
+    private TasksListener mListener;
+    private ViewItem currentHeader;
 
-    List<ViewItem> currentList = new ArrayList<>();
-    List<List<ViewItem>> backlog = new ArrayList<>();
-    public final String LOG_TAG = ListsLoader.class.getName();
+    private List<ViewItem> currentList;
+    private List<List<ViewItem>> backlog = new ArrayList<>();
+    private  final String LOG_TAG = ListsLoader.class.getName();
 
     public ListsLoader(Activity mContext, TasksListener mListener) {
         this.mContext = mContext;
         this.mListener = mListener;
     }
 
-    public List<ViewItem> getSavedViewItems() {
+    public void showSavedViewItems(ViewItem header) {
+        if (header != null) {
+            currentHeader = header;
+        }
         List<ViewItem> result = new ArrayList<>();
 //        String path = getFilesDir().getAbsolutePath().concat("/");
-        File dir = mContext.getFilesDir();
+        String path = mContext.getFilesDir().getAbsolutePath().concat("/")
+                .concat(PageDownloader.generateDirName(currentHeader));
+        File dir = (new File(path));
         FileFilter ff = new FileFilter() {
             @Override
             public boolean accept(File file) {
@@ -46,13 +49,17 @@ public class ListsLoader {
             }
         };
         File[] dirs = dir.listFiles(ff);
-        for (File d:dirs) {
-            result.add(new ViewItem(d.getName(), "", ViewItemType.SAVED));
+        if (dirs != null) {
+            for (File d : dirs) {
+                result.add(new ViewItem(d.getName(), d.getAbsolutePath().concat("/").concat(d.getName()), ViewItemType.SAVED));
+            }
         }
-        return result;
+        addToBacklog();
+        currentList = result;
+        mListener.onLoadingListFinished();
     }
 
-    public void addToBacklog() {
+    private void addToBacklog() {
         if (!currentList.isEmpty()) {
             List<ViewItem> cop = new ArrayList<>(currentList);
             backlog.add(cop);
@@ -71,7 +78,8 @@ public class ListsLoader {
     }
 
     public List<ViewItem> getCurrentList() {
-        if (currentList.isEmpty()) {
+        if (currentList == null) {
+            currentList = new ArrayList<>();
             DownloadListTask task = new DownloadListTask();
             task.execute(BASE_FORUM_URL);
         }
@@ -83,7 +91,7 @@ public class ListsLoader {
         task.execute(header.getUrl());
     }
 
-    public void populateData(int result, String message) {
+    private void populateData(int result, String message) {
         if (result == 0) {
             Toast.makeText(mContext, message, Toast.LENGTH_LONG).show();
         } else {
@@ -93,7 +101,15 @@ public class ListsLoader {
         }
     }
 
-    public class DownloadListTask extends DownloadTask {
+    public ViewItem getCurrentHeader() {
+        return currentHeader;
+    }
+
+    public void setCurrentHeader(ViewItem currentHeader) {
+        this.currentHeader = currentHeader;
+    }
+
+    private class DownloadListTask extends DownloadTask {
 
         @Override
         protected Integer doInBackground(String... urls) {

@@ -12,6 +12,7 @@ import android.util.Log;
 import android.widget.Toast;
 import com.dogzz.forumoffline.dataprocessing.PageExtractor;
 import com.dogzz.forumoffline.dataprocessing.TasksListener;
+import com.dogzz.forumoffline.dataprocessing.ViewItem;
 import it.sephiroth.android.library.picasso.Picasso;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -29,7 +30,7 @@ public class PageDownloader {
     private TasksListener mListener;
     private boolean showVideo;
     private int videoWidth;
-    private String url;
+    private ViewItem currentHeader;
 
     public PageDownloader(Activity mainActivity, boolean showVideo, int videoWidth) {
         this.mainActivity = mainActivity;
@@ -40,14 +41,15 @@ public class PageDownloader {
         }
     }
 
-    public void saveArticleOffline(String url) {
-        this.url = url;
+    public void saveArticleOffline(ViewItem currentHeader, int pageMarker) {
+        this.currentHeader = currentHeader;
+        String url = currentHeader.getUrl() + "/page__st__" + String.valueOf(pageMarker);
         DownloadTask downloadTask = new DownloadArticleTask();
         downloadTask.execute(url);
     }
 
     public void removeArticle(String filename) {
-        String path = mainActivity.getFilesDir().getAbsolutePath().concat("/").concat(filename);
+        String path = PageDownloader.generatePath(filename, mainActivity.getFilesDir(), currentHeader);
         File file = new File(path); //Создаем файловую переменную
         if (file.exists()) { //Если файл или директория существует
             String deleteCmd = "rm -r " + path; //Создаем текстовую командную строку
@@ -62,6 +64,41 @@ public class PageDownloader {
     }
 
 
+    public static String generateFileName(String url) {
+        String fileName = url.replace("http://", "");
+        fileName = fileName.substring(fileName.lastIndexOf("/") + 1, fileName.length());
+        if (fileName.contains(".")) {
+            fileName = fileName.substring(0,  fileName.lastIndexOf("."));
+        }
+        return fileName;
+    }
+
+    public static String generateDirName(ViewItem header) {
+        String fileName = header.getUrl().replace("http://", "");
+        fileName = fileName.substring(fileName.lastIndexOf("topic/") + 6, fileName.length());
+        if (fileName.contains(".")) {
+            fileName = fileName.substring(0,  fileName.lastIndexOf("."));
+        }
+        if (fileName.contains("/")) {
+            fileName = fileName.replace("/", "");
+        }
+        return fileName;
+    }
+
+    public static String generatePath(String fileName, File filesDir, ViewItem header) {
+        String parentPath = filesDir.getAbsolutePath().concat("/")
+                .concat(PageDownloader.generateDirName(header));
+        String path = parentPath.concat("/").concat(fileName);
+        File parentDir = new File(parentPath);
+        boolean parentResult = parentDir.mkdir();
+        File dir = new File(path);
+        boolean result = dir.mkdir();
+        if (!parentResult || !result) {
+            Log.e(LOG_TAG, "Can't create directory");
+        }
+        return path;
+    }
+
     public class DownloadArticleTask extends DownloadTask {
 
         @Override
@@ -70,7 +107,7 @@ public class PageDownloader {
             // params comes from the execute() call: params[0] is the BASE_URL.
             try {
                 result = downloadUrl(urls[0]);
-                result = saveArticleContent(result, resultMessage);
+                result = saveArticleContent(result, resultMessage, urls[0]);
 
             } catch (IOException e) {
                 downloadResult = "Error: Unable to retrieve source data. The source is inaccessible.";
@@ -80,12 +117,12 @@ public class PageDownloader {
             return result;
         }
 
-        private int saveArticleContent(Integer result, String content) {
+        private int saveArticleContent(Integer result, String content, String url) {
             if (result == 1) {
                 try {
                     String pureArticle = extractArticle(content);
-                    String fileName = generateFileName();
-                    String path = generatePath(fileName);
+                    String fileName = generateFileName(url);
+                    String path = generatePath(fileName, mainActivity.getFilesDir(), currentHeader);
                     String articleWithoutImg = makeImagesLocal(pureArticle, path);
                     //save
                     saveToFile(articleWithoutImg, path, fileName);
@@ -100,22 +137,7 @@ public class PageDownloader {
             }
         }
 
-        String generateFileName() {
-            String fileName = url.replace("http://", "");
-            fileName = fileName.substring(fileName.lastIndexOf("/") + 1, fileName.length());
-            if (fileName.contains(".")) {
-                fileName = fileName.substring(0,  fileName.lastIndexOf("."));
-            }
-            return fileName;
-        }
 
-        private String generatePath(String fileName) {
-            String path = mainActivity.getFilesDir().getAbsolutePath().concat("/").concat(fileName);
-            File dir = new File(path);
-            boolean result = dir.mkdir();
-            //(fileName, MODE_PRIVATE);
-            return path;
-        }
 
         private void saveToFile(String pureArticle, String path, String fileName) throws IOException{
             FileOutputStream fout = new FileOutputStream(path.concat("/")

@@ -83,9 +83,10 @@ public class ViewActivity extends AppCompatActivity {
 
     private String readFile(String fileName) throws IOException {
         String pureArticle = "";
-        String path = getFilesDir().getAbsolutePath().concat("/").concat(fileName);
-        FileInputStream fin = new FileInputStream(path.concat("/")
-                .concat(fileName.concat(PageDownloader.FILE_EXT)));
+//        String path = getFilesDir().getAbsolutePath().concat("/").concat(fileName);
+        FileInputStream fin = new FileInputStream(fileName.concat(PageDownloader.FILE_EXT));
+//                path.concat("/").concat(
+//             fileName.concat(PageDownloader.FILE_EXT));
         BufferedReader br = new BufferedReader(new InputStreamReader(fin));
         String str = "";
         while ((str = br.readLine()) != null) {

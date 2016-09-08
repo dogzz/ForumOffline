@@ -15,9 +15,14 @@ import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import com.dogzz.forumoffline.dataprocessing.ViewItem;
 import com.dogzz.forumoffline.network.PageDownloader;
 
 public class MyDialogFragment extends DialogFragment {
+
+    ViewItem header;
+    int maxPage;
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -40,11 +45,11 @@ public class MyDialogFragment extends DialogFragment {
                         try {
                             int start = Integer.parseInt(eTextStart.getText().toString());
                             int end = Integer.parseInt(eTextEnd.getText().toString());
+//                            String startUrl = header.getUrl();
                             for (int i = (start - 1) * 20; i <= (end - 1) * 20; i = i + 20) {
-                                String url = "http://www.babyplan.ru/forums/topic/71124-v-ozhidanii-chuda/page__st__" +
-                                        String.valueOf(i);
+
                                 PageDownloader downloader = new PageDownloader(getActivity(), false, 0);
-                                downloader.saveArticleOffline(url);
+                                downloader.saveArticleOffline(header, i);
                             }
                         } catch (Exception ex) {
                             Snackbar.make(view, ex.getMessage(), Snackbar.LENGTH_LONG)
@@ -59,5 +64,9 @@ public class MyDialogFragment extends DialogFragment {
                     }
                 });
         return builder.create();
+    }
+
+    public void setHeader(ViewItem header) {
+        this.header = header;
     }
 }

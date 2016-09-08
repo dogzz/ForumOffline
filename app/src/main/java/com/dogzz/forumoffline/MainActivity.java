@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -109,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements TasksListener {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1) {
             if (resultCode == Activity.RESULT_CANCELED) {
-                onSavedArticleTaskFinished();
+                adapter.notifyDataSetChanged();
             }
         }
     }
@@ -128,13 +127,7 @@ public class MainActivity extends AppCompatActivity implements TasksListener {
 
     @Override
     public void onSavedArticleTaskFinished() {
-//        articlesHeaders.clear();
-//        articlesHeaders.addAll(loader.getSavedViewItems());
-        if (adapter == null) {
-            adapter = new MyRecyclerAdapter(this, loader.getSavedViewItems());
-            mRecyclerView.setAdapter(adapter);
-        }
-        adapter.notifyDataSetChanged();
+        loader.showSavedViewItems(null);
     }
 
 
@@ -143,10 +136,12 @@ public class MainActivity extends AppCompatActivity implements TasksListener {
         if (header.getType() == ViewItemType.SAVED) {
             Intent intent = new Intent(this, ViewActivity.class);
             String fileName = header.getUrl();
+
             intent.putExtra(EXTRA_MESSAGE, fileName);
             startActivityForResult(intent, 1);
         } else if (header.getType() == ViewItemType.THREAD){
-            confirmStartDownload();
+            loader.showSavedViewItems(header);
+//            confirmStartDownload();
         } else {
             loader.renewViewItems(header);
         }
@@ -157,7 +152,8 @@ public class MainActivity extends AppCompatActivity implements TasksListener {
     }
 
     public void confirmStartDownload() {
-        DialogFragment newFragment = new MyDialogFragment();
+        MyDialogFragment newFragment = new MyDialogFragment();
+        newFragment.setHeader(loader.getCurrentHeader());
         newFragment.show(getSupportFragmentManager(), "A?");
     }
 
