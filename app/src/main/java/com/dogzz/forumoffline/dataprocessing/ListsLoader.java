@@ -22,15 +22,17 @@ public class ListsLoader {
     private static final String BASE_FORUM_URL = "http://www.babyplan.ru/forums/";
     private Activity mContext;
     private TasksListener mListener;
+    private DBProcessor dbProcessor;
     private ViewItem currentHeader;
 
     private List<ViewItem> currentList;
     private List<List<ViewItem>> backlog = new ArrayList<>();
     private  final String LOG_TAG = ListsLoader.class.getName();
 
-    public ListsLoader(Activity mContext, TasksListener mListener) {
+    public ListsLoader(Activity mContext, TasksListener mListener, DBProcessor dbProcessor) {
         this.mContext = mContext;
         this.mListener = mListener;
+        this.dbProcessor = dbProcessor;
     }
 
     public void showSavedViewItems(ViewItem header) {
@@ -96,9 +98,27 @@ public class ListsLoader {
             Toast.makeText(mContext, message, Toast.LENGTH_LONG).show();
         } else {
             addToBacklog();
-            currentList = PageExtractor.extractViewItemList(message);
+            Log.d(LOG_TAG, "Extract and merge list - Start");
+            currentList = dbDecorator(PageExtractor.extractViewItemList(message));
+            Log.d(LOG_TAG, "Extract and merge list - Finish");
+//            currentList = PageExtractor.extractViewItemList(message);
             mListener.onLoadingListFinished();
         }
+    }
+
+    /**
+     * return list with realm-backed ViewItems, merged with db data
+     * @param viewItems viewItems from network
+     * @return viewItems merged with same, stored in db
+     */
+    private List<ViewItem> dbDecorator(List<ViewItem> viewItems) {
+//        List<ViewItem> result = new ArrayList<>();
+//        for (ViewItem item : viewItems) {
+//            result.add(dbProcessor.getMergedViewItem(item));
+//            Log.d(LOG_TAG, "Get From DB - Finish");
+//        }
+//        return result;
+        return dbProcessor.getMergedViewItems(viewItems);
     }
 
     public ViewItem getCurrentHeader() {

@@ -11,24 +11,25 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import com.dogzz.forumoffline.dataprocessing.ListsLoader;
-import com.dogzz.forumoffline.dataprocessing.TasksListener;
-import com.dogzz.forumoffline.dataprocessing.ViewItem;
-import com.dogzz.forumoffline.dataprocessing.ViewItemType;
+import android.widget.Toast;
+import com.dogzz.forumoffline.dataprocessing.*;
+import com.dogzz.forumoffline.uisupport.ItemClickListener;
 import com.dogzz.forumoffline.uisupport.MyRecyclerAdapter;
-import com.dogzz.forumoffline.uisupport.RecyclerItemClickListener;
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements TasksListener {
+public class MainActivity extends AppCompatActivity implements TasksListener, ItemClickListener {
     RecyclerView mRecyclerView;
     MyRecyclerAdapter adapter;
     ListsLoader loader;
     protected List<ViewItem> articlesHeaders = new ArrayList<>();
     public final static String EXTRA_MESSAGE = "com.dogzz.forumoffline.FILENAME";
-
-
+    private Realm realm;
+    private RealmConfiguration realmConfig;
+    private DBProcessor dbProcessor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,11 +38,18 @@ public class MainActivity extends AppCompatActivity implements TasksListener {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+
+        // Create the Realm configuration
+        realmConfig = new RealmConfiguration.Builder(this).build();
+        // Open the Realm for the UI thread.
+        realm = Realm.getInstance(realmConfig);
+        dbProcessor = new DBProcessor(realm, this);
+
         if (loader == null) {
-            loader = new ListsLoader(this, this);
+            loader = new ListsLoader(this, this, dbProcessor);
         }
         if (adapter == null) {
-            adapter = new MyRecyclerAdapter(this, loader.getCurrentList());
+            adapter = new MyRecyclerAdapter(this, loader.getCurrentList(), this);
             mRecyclerView.setAdapter(adapter);
         }
         adapter.notifyDataSetChanged();
@@ -56,21 +64,6 @@ public class MainActivity extends AppCompatActivity implements TasksListener {
         GridLayoutManager lManager = new GridLayoutManager(this, 1);
         mRecyclerView.setLayoutManager(lManager);
         int pagesDisplayed = 1;
-        mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(this, mRecyclerView, new RecyclerItemClickListener.OnItemClickListener() {
-            @Override
-            public void onItemClick(View view, int position) {
-                ViewItem articleHeader = loader.getCurrentList().get(position);
-                onArticleClicked(articleHeader);
-            }
-
-            @Override
-            public void onLongItemClick(View view, int position) {
-                ViewItem articleHeader = loader.getCurrentList().get(position);
-                onArticleLongClicked(articleHeader);
-            }
-        }));
-
-
     }
 
     @Override
@@ -117,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements TasksListener {
     @Override
     public void onLoadingListFinished() {
         if (adapter == null) {
-            adapter = new MyRecyclerAdapter(this, loader.getCurrentList());
+            adapter = new MyRecyclerAdapter(this, loader.getCurrentList(), this);
             mRecyclerView.setAdapter(adapter);
         } else {
             adapter.setPageFolders(loader.getCurrentList());
@@ -131,8 +124,9 @@ public class MainActivity extends AppCompatActivity implements TasksListener {
     }
 
 
-
-    public void onArticleClicked(ViewItem header) {
+    @Override
+    public void onArticleClicked(int position) {
+        ViewItem header = loader.getCurrentList().get(position);
         if (header.getType() == ViewItemType.SAVED) {
             Intent intent = new Intent(this, ViewActivity.class);
             String fileName = header.getUrl();
@@ -147,8 +141,16 @@ public class MainActivity extends AppCompatActivity implements TasksListener {
         }
     }
 
-    public void onArticleLongClicked(ViewItem header) {
+    @Override
+    public void onArticleLongClicked(int position) {
 
+    }
+
+    @Override
+    public void onArticleStarred(int position) {
+        ViewItem header = loader.getCurrentList().get(position);
+        dbProcessor.markItemStarred(header);
+        adapter.notifyItemChanged(position);
     }
 
     public void confirmStartDownload() {
@@ -157,6 +159,11 @@ public class MainActivity extends AppCompatActivity implements TasksListener {
         newFragment.show(getSupportFragmentManager(), "A?");
     }
 
-
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close(); // Remember to close Realm when done.
     }
+
+
+}
