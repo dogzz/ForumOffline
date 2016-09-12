@@ -37,16 +37,11 @@ public class DBProcessor {
                     item.setType(type);
                     Log.d(LOG_TAG, "Create record - End");
                 }
-
             }
         });
         Log.d(LOG_TAG, "Get From DB - Start");
         return realm.where(ViewItem.class).equalTo("url", url).findFirst();
         }
-
-    public ViewItem getMergedViewItem(ViewItem item) {
-        return getMergedViewItem(item.getText(), item.getUrl(), item.getType());
-    }
 
     public List<ViewItem> getMergedViewItems(final List<ViewItem> items) {
         String[] urls = new String[items.size()];
@@ -66,6 +61,7 @@ public class DBProcessor {
                     }
                     result.setText(origItem.getText());
                     result.setType(origItem.getType());
+                    result.setLastPage(origItem.getLastPage());
                 }
             }
         });

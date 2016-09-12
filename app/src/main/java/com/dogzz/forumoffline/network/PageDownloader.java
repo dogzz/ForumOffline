@@ -10,9 +10,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.util.Log;
 import android.widget.Toast;
-import com.dogzz.forumoffline.dataprocessing.PageExtractor;
-import com.dogzz.forumoffline.dataprocessing.TasksListener;
-import com.dogzz.forumoffline.dataprocessing.ViewItem;
+import com.dogzz.forumoffline.R;
+import com.dogzz.forumoffline.dataprocessing.*;
 import it.sephiroth.android.library.picasso.Picasso;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -43,9 +42,13 @@ public class PageDownloader {
 
     public void saveArticleOffline(ViewItem currentHeader, int pageMarker) {
         this.currentHeader = currentHeader;
+        String title = String.valueOf(pageMarker + 1);
+        pageMarker *= 20;
         String url = currentHeader.getUrl() + "/page__st__" + String.valueOf(pageMarker);
+//        String fileName = generateFileName(url);
+        String path = generatePath(title, mainActivity.getFilesDir(), this.currentHeader);
         DownloadTask downloadTask = new DownloadArticleTask();
-        downloadTask.execute(url);
+        downloadTask.execute(url, path, title);
     }
 
     public void removeArticle(String filename) {
@@ -94,7 +97,7 @@ public class PageDownloader {
         File dir = new File(path);
         boolean result = dir.mkdir();
         if (!parentResult || !result) {
-            Log.e(LOG_TAG, "Can't create directory");
+            Log.d(LOG_TAG, "Can't create directory");
         }
         return path;
     }
@@ -107,7 +110,7 @@ public class PageDownloader {
             // params comes from the execute() call: params[0] is the BASE_URL.
             try {
                 result = downloadUrl(urls[0]);
-                result = saveArticleContent(result, resultMessage, urls[0]);
+                result = saveArticleContent(result, resultMessage, urls[0], urls[1], urls[2]);
 
             } catch (IOException e) {
                 downloadResult = "Error: Unable to retrieve source data. The source is inaccessible.";
@@ -117,12 +120,11 @@ public class PageDownloader {
             return result;
         }
 
-        private int saveArticleContent(Integer result, String content, String url) {
+        private int saveArticleContent(Integer result, String content, String url,
+                                       String path, String fileName) {
             if (result == 1) {
                 try {
                     String pureArticle = extractArticle(content);
-                    String fileName = generateFileName(url);
-                    String path = generatePath(fileName, mainActivity.getFilesDir(), currentHeader);
                     String articleWithoutImg = makeImagesLocal(pureArticle, path);
                     //save
                     saveToFile(articleWithoutImg, path, fileName);

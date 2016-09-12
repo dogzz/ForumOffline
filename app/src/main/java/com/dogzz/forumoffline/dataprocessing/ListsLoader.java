@@ -8,6 +8,7 @@ package com.dogzz.forumoffline.dataprocessing;
 import android.app.Activity;
 import android.util.Log;
 import android.widget.Toast;
+import com.dogzz.forumoffline.R;
 import com.dogzz.forumoffline.network.DownloadTask;
 import com.dogzz.forumoffline.network.PageDownloader;
 
@@ -53,12 +54,25 @@ public class ListsLoader {
         File[] dirs = dir.listFiles(ff);
         if (dirs != null) {
             for (File d : dirs) {
-                result.add(new ViewItem(d.getName(), d.getAbsolutePath().concat("/").concat(d.getName()), ViewItemType.SAVED));
+                ViewItem item = new ViewItem(
+                        currentHeader.getText(),
+                        d.getAbsolutePath().concat("/").concat(d.getName()),
+                        ViewItemType.SAVED);
+                item.setLastPage(d.getName());
+                result.add(item);
             }
         }
-        addToBacklog();
+        if (header != null) {
+            addToBacklog();
+        }
         currentList = result;
+        currentHeader.setLastSavedPage(
+                result.isEmpty() ? 0 : result.get(result.size() - 1).getLastPageNumber());
         mListener.onLoadingListFinished();
+    }
+
+    private String makeTitleForSavedPage(String name) {
+        return mContext.getResources().getString(R.string.page_string) + " " + name;
     }
 
     private void addToBacklog() {

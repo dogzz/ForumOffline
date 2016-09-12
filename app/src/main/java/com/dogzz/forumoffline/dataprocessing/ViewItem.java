@@ -6,6 +6,7 @@
 package com.dogzz.forumoffline.dataprocessing;
 
 import io.realm.RealmObject;
+import io.realm.annotations.Ignore;
 import io.realm.annotations.PrimaryKey;
 
 public class ViewItem extends RealmObject {
@@ -17,6 +18,7 @@ public class ViewItem extends RealmObject {
     private boolean isRead;
     private boolean isFavorite;
     private int firstSavedPage;
+    @Ignore
     private int lastSavedPage;
 
     public ViewItem(String text, String url, ViewItemType type) {
@@ -37,6 +39,10 @@ public class ViewItem extends RealmObject {
 
     public String getLastPage() {
         return String.valueOf(lastPage);
+    }
+
+    public int getLastPageNumber() {
+        return lastPage;
     }
 
     public void setLastPage(String lastPage) {

@@ -45,14 +45,23 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.Cu
     @Override
     public void onBindViewHolder(CustomViewHolder customViewHolder, int position) {
         ViewItem header = pageFolders.get(position);
-        if (header.getType() == ViewItemType.SECTION) {
-            customViewHolder.articleImage.setImageResource(R.drawable.f_icon);
-            customViewHolder.articleSubTitle.setVisibility(View.GONE);
-            customViewHolder.articleSubTitle.setText("");
-        } else {
-            customViewHolder.articleImage.setImageResource(R.drawable.t_unread);
-            customViewHolder.articleSubTitle.setVisibility(View.VISIBLE);
-            customViewHolder.articleSubTitle.setText(header.getLastPage());
+        switch (header.getType()) {
+            case SECTION:
+                customViewHolder.articleImage.setImageResource(R.drawable.f_icon);
+                customViewHolder.articleSubTitle.setVisibility(View.GONE);
+                customViewHolder.articleSubTitle.setText("");
+                break;
+            case THREAD:
+                customViewHolder.articleImage.setImageResource(R.drawable.t_unread);
+                customViewHolder.articleSubTitle.setVisibility(View.VISIBLE);
+                customViewHolder.articleSubTitle.setText(String.format(mContext.getResources().getString(R.string.pages_total),
+                        header.getLastPage()));
+                break;
+            case SAVED:
+                customViewHolder.articleSubTitle.setVisibility(View.VISIBLE);
+                customViewHolder.articleSubTitle.setText(String.format(mContext.getResources().getString(R.string.page_string),
+                        header.getLastPage()));
+                break;
         }
         customViewHolder.articleImage.setVisibility(View.VISIBLE);
         //Setting text view title

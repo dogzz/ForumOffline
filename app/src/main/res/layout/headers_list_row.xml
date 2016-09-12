@@ -41,7 +41,7 @@
                 android:id="@+id/articlesubtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/articletitle"
+                android:layout_alignParentBottom="true"
                 android:layout_toEndOf="@+id/articleimage"
                 android:maxLines="6"
                 android:padding="4dp"

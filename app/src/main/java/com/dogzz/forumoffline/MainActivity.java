@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity implements TasksListener, It
     private Realm realm;
     private RealmConfiguration realmConfig;
     private DBProcessor dbProcessor;
+    private FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements TasksListener, It
             mRecyclerView.setAdapter(adapter);
         }
         adapter.notifyDataSetChanged();
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -70,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements TasksListener, It
     public void onBackPressed() {
         if (loader.getBacklogSize() > 0) {
             loader.popBacklog();
+            fab.setVisibility(View.GONE);
         } else {
             super.onBackPressed();
         }
@@ -130,10 +132,11 @@ public class MainActivity extends AppCompatActivity implements TasksListener, It
         if (header.getType() == ViewItemType.SAVED) {
             Intent intent = new Intent(this, ViewActivity.class);
             String fileName = header.getUrl();
-
             intent.putExtra(EXTRA_MESSAGE, fileName);
             startActivityForResult(intent, 1);
         } else if (header.getType() == ViewItemType.THREAD){
+            fab.setVisibility(View.VISIBLE);
+
             loader.showSavedViewItems(header);
 //            confirmStartDownload();
         } else {

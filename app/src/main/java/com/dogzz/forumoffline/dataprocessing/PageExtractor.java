@@ -89,7 +89,11 @@ public class PageExtractor {
 //                String lastPage = heading.select("a:contains(→)").text();
                 Element page = heading.select("ul[class=mini_pagination] li").last();
                 String lastPage = page != null ? page.text().trim() : "";
-                lastPage  = lastPage.isEmpty() ? "1" : lastPage.substring(0, lastPage.length() - 1);//work if arrow present, fix needed
+                if (lastPage.isEmpty()) {
+                    lastPage = "1";
+                } else {
+                    lastPage = lastPage.contains("→") ? lastPage.substring(0, lastPage.length() - 1): lastPage.trim();//work if arrow present, fix needed
+                }
                 ViewItem item = new ViewItem(text, url, type);
                 item.setLastPage(lastPage.trim());
                 resultList.add(item);
