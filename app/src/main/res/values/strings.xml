@@ -8,4 +8,12 @@
     <string name="action_remove">Удалить</string>
     <string name="page_string">Страница: %1$s</string>
     <string name="pages_total">Всего страниц: %1$s</string>
+    <string name="saved">Сохраненные</string>
+
+    <string-array name="spinner_array">
+        <item>Форумы</item>
+        <item>Группы</item>
+        <item>Избранные</item>
+    </string-array>
+
 </resources>

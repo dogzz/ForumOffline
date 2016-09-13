@@ -77,4 +77,8 @@ public class DBProcessor {
             }
         });
     }
+
+    public List<ViewItem> getStarredViewItems() {
+        return realm.where(ViewItem.class).equalTo("isFavorite", true).findAll();
+    }
 }

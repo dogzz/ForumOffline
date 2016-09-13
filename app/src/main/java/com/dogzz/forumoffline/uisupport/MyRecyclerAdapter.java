@@ -50,17 +50,23 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.Cu
                 customViewHolder.articleImage.setImageResource(R.drawable.f_icon);
                 customViewHolder.articleSubTitle.setVisibility(View.GONE);
                 customViewHolder.articleSubTitle.setText("");
+                customViewHolder.actionDelete.setVisibility(View.GONE);
+                customViewHolder.isStarredImage.setVisibility(View.VISIBLE);
                 break;
             case THREAD:
                 customViewHolder.articleImage.setImageResource(R.drawable.t_unread);
                 customViewHolder.articleSubTitle.setVisibility(View.VISIBLE);
                 customViewHolder.articleSubTitle.setText(String.format(mContext.getResources().getString(R.string.pages_total),
                         header.getLastPage()));
+                customViewHolder.actionDelete.setVisibility(View.GONE);
+                customViewHolder.isStarredImage.setVisibility(View.VISIBLE);
                 break;
             case SAVED:
                 customViewHolder.articleSubTitle.setVisibility(View.VISIBLE);
                 customViewHolder.articleSubTitle.setText(String.format(mContext.getResources().getString(R.string.page_string),
                         header.getLastPage()));
+                customViewHolder.isStarredImage.setVisibility(View.GONE);
+                customViewHolder.actionDelete.setVisibility(View.VISIBLE);
                 break;
         }
         customViewHolder.articleImage.setVisibility(View.VISIBLE);
@@ -111,6 +117,7 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.Cu
     static class CustomViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         ImageView articleImage;
         ImageView isStarredImage;
+        ImageView actionDelete;
         TextView articleTitle;
         TextView articleSubTitle;
         CardView articleCard;
@@ -122,7 +129,9 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.Cu
             this.articleCard = (CardView) view.findViewById(R.id.articlecard);
             this.articleImage = (ImageView) view.findViewById(R.id.articleimage);
             this.isStarredImage = (ImageView) view.findViewById(R.id.is_starred);
+            this.actionDelete = (ImageView) view.findViewById(R.id.action_delete);
             isStarredImage.setOnClickListener(this);
+            actionDelete.setOnClickListener(this);
             view.setOnClickListener(this);
             this.articleTitle = (TextView) view.findViewById(R.id.articletitle);
             this.articleSubTitle = (TextView) view.findViewById(R.id.articlesubtitle);
@@ -132,6 +141,8 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.Cu
         public void onClick(View view) {
             if (view.getId() == isStarredImage.getId()){
                 itemClickListener.onArticleStarred(getAdapterPosition());
+            } else if (view.getId() == actionDelete.getId()) {
+                itemClickListener.onArticleDeleted(getAdapterPosition());
             } else {
                 itemClickListener.onArticleClicked(getAdapterPosition());
             }

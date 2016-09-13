@@ -62,5 +62,16 @@
                 android:scaleType="centerCrop"
                 android:src="@drawable/ic_star_border_black_24dp" />
 
+        <ImageView
+                android:id="@+id/action_delete"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_delete_black_36dp"
+                android:visibility="gone"
+        />
+
     </RelativeLayout>
 </android.support.v7.widget.CardView>

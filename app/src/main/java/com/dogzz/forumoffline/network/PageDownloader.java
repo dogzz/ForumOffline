@@ -51,8 +51,8 @@ public class PageDownloader {
         downloadTask.execute(url, path, title);
     }
 
-    public void removeArticle(String filename) {
-        String path = PageDownloader.generatePath(filename, mainActivity.getFilesDir(), currentHeader);
+    public void removeArticle(String url) {
+        String path = url.substring(0, url.lastIndexOf("/"));
         File file = new File(path); //Создаем файловую переменную
         if (file.exists()) { //Если файл или директория существует
             String deleteCmd = "rm -r " + path; //Создаем текстовую командную строку

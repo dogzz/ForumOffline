@@ -7,4 +7,5 @@ public interface ItemClickListener {
     void onArticleClicked(int position);
     void onArticleLongClicked(int position);
     void onArticleStarred(int position);
+    void onArticleDeleted(int position);
 }

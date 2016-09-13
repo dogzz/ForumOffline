@@ -11,8 +11,16 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.Toast;
 import com.dogzz.forumoffline.dataprocessing.*;
+import com.dogzz.forumoffline.listshandlers.FavouritesLoader;
+import com.dogzz.forumoffline.listshandlers.ForumsLoader;
+import com.dogzz.forumoffline.listshandlers.GroupsLoader;
+import com.dogzz.forumoffline.listshandlers.ListsLoader;
+import com.dogzz.forumoffline.network.PageDownloader;
 import com.dogzz.forumoffline.uisupport.ItemClickListener;
 import com.dogzz.forumoffline.uisupport.MyRecyclerAdapter;
 import io.realm.Realm;
@@ -21,7 +29,7 @@ import io.realm.RealmConfiguration;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements TasksListener, ItemClickListener {
+public class MainActivity extends AppCompatActivity implements TasksListener, ItemClickListener, AdapterView.OnItemSelectedListener {
     RecyclerView mRecyclerView;
     MyRecyclerAdapter adapter;
     ListsLoader loader;
@@ -31,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements TasksListener, It
     private RealmConfiguration realmConfig;
     private DBProcessor dbProcessor;
     private FloatingActionButton fab;
+    private Spinner spinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +47,13 @@ public class MainActivity extends AppCompatActivity implements TasksListener, It
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        spinner = (Spinner) findViewById(R.id.spinner_nav);
+        ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(this,
+                R.array.spinner_array, R.layout.spinner_layout);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(spinnerAdapter);
+        spinner.setOnItemSelectedListener(this);
         mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
 
         // Create the Realm configuration
@@ -46,14 +62,6 @@ public class MainActivity extends AppCompatActivity implements TasksListener, It
         realm = Realm.getInstance(realmConfig);
         dbProcessor = new DBProcessor(realm, this);
 
-        if (loader == null) {
-            loader = new ListsLoader(this, this, dbProcessor);
-        }
-        if (adapter == null) {
-            adapter = new MyRecyclerAdapter(this, loader.getCurrentList(), this);
-            mRecyclerView.setAdapter(adapter);
-        }
-        adapter.notifyDataSetChanged();
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -136,9 +144,7 @@ public class MainActivity extends AppCompatActivity implements TasksListener, It
             startActivityForResult(intent, 1);
         } else if (header.getType() == ViewItemType.THREAD){
             fab.setVisibility(View.VISIBLE);
-
             loader.showSavedViewItems(header);
-//            confirmStartDownload();
         } else {
             loader.renewViewItems(header);
         }
@@ -156,6 +162,13 @@ public class MainActivity extends AppCompatActivity implements TasksListener, It
         adapter.notifyItemChanged(position);
     }
 
+    @Override
+    public void onArticleDeleted(int position) {
+        ViewItem header = loader.getCurrentList().get(position);
+        PageDownloader downloader = new PageDownloader(this, false, 0);
+        downloader.removeArticle(header.getUrl());
+    }
+
     public void confirmStartDownload() {
         MyDialogFragment newFragment = new MyDialogFragment();
         newFragment.setHeader(loader.getCurrentHeader());
@@ -169,4 +182,34 @@ public class MainActivity extends AppCompatActivity implements TasksListener, It
     }
 
 
+    /**
+     * Callback for Spinner
+     */
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+        switch (pos) {
+            case 0:
+                loader = new ForumsLoader(this, this, dbProcessor);
+                break;
+            case 1:
+                loader = new GroupsLoader(this, this, dbProcessor);
+                Toast.makeText(this, "Groups clicked", Toast.LENGTH_SHORT).show();
+                break;
+            case 2:
+                loader = new FavouritesLoader(this, this, dbProcessor);
+                Toast.makeText(this, "Favourites clicked", Toast.LENGTH_SHORT).show();
+                break;
+        }
+        adapter = new MyRecyclerAdapter(this, loader.getCurrentList(), this);
+        mRecyclerView.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
+    }
+
+    /**
+     * Callback for Spinner
+     */
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView) {
+
+    }
 }
